@@ -13,10 +13,13 @@ namespace UABackoneBot.Services
         private readonly CsvDownloaderService? _downloader;
         private readonly List<TimeSpan> _runTimes = new()
         {
-            new TimeSpan(14, 15, 0),
+            new TimeSpan(9, 0, 0),
+            new TimeSpan(12, 0, 0),
+            new TimeSpan(18, 30, 0),
         };
         private List<JobInfo> _previousJobs;
         private List<JobInfo> _currentJobs;
+        private bool _hasRunOnce = false;
          
         public JobSyncService(DiscordSocketClient client, CsvDownloaderService downloader, CsvConverterService converter, ulong channelId)
         {
@@ -113,7 +116,14 @@ namespace UABackoneBot.Services
         {
             var now = DateTime.Now;
 
-            // Build list of today's run times
+            if (!_hasRunOnce)
+            {
+                _hasRunOnce = true;
+
+                Console.WriteLine("[JobSyncService] First run: starting immediately.");
+                return; 
+            }
+
             var todayRunTimes = _runTimes
                 .Select(t => DateTime.Today + t)
                 .Where(t => t > now)
@@ -128,7 +138,6 @@ namespace UABackoneBot.Services
             }
             else
             {
-                // all today's times have passed → use first time tomorrow
                 nextRunTime = DateTime.Today.AddDays(1) + _runTimes[0];
             }
 
