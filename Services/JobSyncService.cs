@@ -15,6 +15,7 @@ namespace UABackoneBot.Services
         {
             new TimeSpan(9, 30, 0),
             new TimeSpan(12, 0, 0),
+            new TimeSpan(14, 10, 0),
             new TimeSpan(18, 30, 0),
         };
         private List<JobInfo> _previousJobs;
