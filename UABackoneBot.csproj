@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<PlaywrightPlatform>linux-x64</PlaywrightPlatform>
+	<PlaywrightPlatform>all</PlaywrightPlatform>
   </PropertyGroup>
 
   <ItemGroup>

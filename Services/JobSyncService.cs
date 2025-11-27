@@ -13,10 +13,7 @@ namespace UABackoneBot.Services
         private readonly CsvDownloaderService? _downloader;
         private readonly List<TimeSpan> _runTimes = new()
         {
-            new TimeSpan(9, 30, 0),
-            new TimeSpan(12, 0, 0),
-            new TimeSpan(14, 10, 0),
-            new TimeSpan(18, 30, 0),
+            new TimeSpan(14, 15, 0),
         };
         private List<JobInfo> _previousJobs;
         private List<JobInfo> _currentJobs;
