@@ -10,6 +10,13 @@ namespace UABackoneBot.Services
 
         public async Task<string> RunCsvDownloader()
         {
+            var exitCode = Microsoft.Playwright.Program.Main(new[] { "install", "--with-deps" });
+
+            if (exitCode != 0)
+            {
+                Console.WriteLine($"Playwright install failed with exit code {exitCode}");
+            }
+
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(GetLaunchOptions());
             var context = await browser.NewContextAsync(GetContextOptions());
