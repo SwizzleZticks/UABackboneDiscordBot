@@ -10,18 +10,6 @@ namespace UABackoneBot.Services
 
         public async Task<string> RunCsvDownloader()
         {
-            try
-            {
-                Console.WriteLine("[JobSyncService] Installing Playwright browsers...");
-                var exitCode = Microsoft.Playwright.Program.Main(new[] { "install" });
-                Console.WriteLine($"[JobSyncService] Playwright install exit code: {exitCode}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[JobSyncService] Playwright install threw: {ex}");
-            }
-
-
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(GetLaunchOptions());
             var context = await browser.NewContextAsync(GetContextOptions());
