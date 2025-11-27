@@ -1,13 +1,12 @@
-# --- BASE IMAGE ---
-# Contains .NET, Playwright, and ALL browsers preinstalled
-FROM mcr.microsoft.com/playwright/dotnet:v1.44.0-focal
+# .NET 8 + Playwright browsers preinstalled
+FROM mcr.microsoft.com/playwright/dotnet:v1.44.0-jammy
 
-# --- BUILD APP ---
+# Build
 WORKDIR /src
 COPY . .
 RUN dotnet restore
 RUN dotnet publish -c Release -o /app --no-self-contained
 
-# --- RUNTIME ---
+# Runtime
 WORKDIR /app
 ENTRYPOINT ["dotnet", "UABackoneBot.dll"]
