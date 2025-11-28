@@ -25,8 +25,7 @@ namespace UABackoneBot.Services
                 GatewayIntents =
                     GatewayIntents.Guilds |
                     GatewayIntents.GuildMessages |
-                    GatewayIntents.GuildMessageReactions |
-                    GatewayIntents.MessageContent
+                    GatewayIntents.GuildMessageReactions
             });
 
             _interactions = new InteractionService(_client);
