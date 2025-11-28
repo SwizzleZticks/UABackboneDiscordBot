@@ -7,6 +7,10 @@ namespace UABackoneBot.Services
 {
     public class CsvConverterService
     {
+        private readonly HttpClient _httpClient = new HttpClient()
+        {
+            BaseAddress = new Uri("") //add asp.net backend endpoint
+        };
         private List<JobInfo>? _jobs;
         public List<JobInfo>? Jobs 
         { 

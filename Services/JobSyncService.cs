@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Text;
+using System.Threading.Tasks;
 using UABackoneBot.Models;
 
 namespace UABackoneBot.Services
@@ -20,6 +21,8 @@ namespace UABackoneBot.Services
         private List<JobInfo> _previousJobs;
         private List<JobInfo> _currentJobs;
         private bool _hasRunOnce = false;
+
+        public event Func<string, Task> LogCurrentStatus;
          
         public JobSyncService(DiscordSocketClient client, CsvDownloaderService downloader, CsvConverterService converter, ulong channelId)
         {
@@ -39,9 +42,11 @@ namespace UABackoneBot.Services
                 {
                     try
                     {
+                        await UpdateStatus("Starting JobSyncService");
                         await WaitUntilNextRunTime();
-
+                        await UpdateStatus("Starting CSV downloader...");
                         var filePath = await _downloader.RunCsvDownloader();
+                        await UpdateStatus("Download complete, beginning conversion...");
                         _currentJobs = _converter.GetJobs(filePath);
 
                         var newJobs = _currentJobs
@@ -51,19 +56,19 @@ namespace UABackoneBot.Services
 
                         if (newJobs.Count == 0)
                         {
-                            Console.WriteLine("[JobSyncService] No new jobs found. Skipping post.");
+                            await UpdateStatus("[JobSyncService] No new jobs found. Skipping post.");
                         }
                         else
                         {
                             await PostJobsAsync(newJobs);
-                            Console.WriteLine($"[JobSyncService] Posted {newJobs.Count} new jobs");
+                            await UpdateStatus($"[JobSyncService] Posted {newJobs.Count} new jobs");
                         }
 
                             _previousJobs = _currentJobs;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[JobSyncService ERROR] {ex}");
+                        await UpdateStatus($"[JobSyncService ERROR] {ex}");
                     }
 
                     await Task.Delay(10000); // temporary 10 sec delay so it doesn't spam
@@ -148,6 +153,14 @@ namespace UABackoneBot.Services
             Console.WriteLine($"[JobSyncService] Next run at {nextRunTime} (in {delay}).");
 
             await Task.Delay(delay);
+        }
+
+        public async Task UpdateStatus(string msg)
+        {
+            if (LogCurrentStatus != null)
+            {
+                await LogCurrentStatus("[JobSyncService] " + msg);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,7 +20,15 @@ namespace UABackoneBot.Services
         public static async Task StartAsync()
         {
             var token = Environment.GetEnvironmentVariable("BOT_KEY");
-            _client = new DiscordSocketClient();
+            _client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                GatewayIntents =
+                    GatewayIntents.Guilds |
+                    GatewayIntents.GuildMessages |
+                    GatewayIntents.GuildMessageReactions |
+                    GatewayIntents.MessageContent
+            });
+
             _interactions = new InteractionService(_client);
 
             _client.Log += Log;
@@ -39,6 +48,7 @@ namespace UABackoneBot.Services
             await _interactions.AddModulesAsync(Assembly.GetExecutingAssembly(), null);
             await _interactions.RegisterCommandsToGuildAsync(devGuildId);
             _jobSyncService = new JobSyncService(_client, new CsvDownloaderService(), new CsvConverterService(), 1403872991422578790);
+            _jobSyncService.LogCurrentStatus += HandleJobSyncStatus;
             _jobSyncService.Start();
         }
 
@@ -51,6 +61,12 @@ namespace UABackoneBot.Services
         private static Task Log(LogMessage msg)
         {
             Console.WriteLine(msg.ToString());
+            return Task.CompletedTask;
+        }
+
+        private static Task HandleJobSyncStatus(string msg)
+        {
+            Console.WriteLine(msg);
             return Task.CompletedTask;
         }
     }
