@@ -12,12 +12,13 @@ namespace UABackoneBot.Services
         private readonly DiscordSocketClient?  _client;
         private readonly CsvConverterService?  _converter;
         private readonly CsvDownloaderService? _downloader;
-        private readonly List<TimeSpan> _runTimes = new()
+        private static readonly List<TimeSpan> _runTimes = new()
         {
             new TimeSpan(9, 0, 0),
             new TimeSpan(12, 0, 0),
             new TimeSpan(18, 30, 0),
         };
+        private static readonly TimeZoneInfo _targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
         private List<JobInfo> _previousJobs;
         private List<JobInfo> _currentJobs;
         private bool _hasRunOnce = false;
@@ -38,11 +39,11 @@ namespace UABackoneBot.Services
         {
             _ = Task.Run(async () =>
             {
+                await UpdateStatus("Starting JobSyncService");
                 while (true)
                 {
                     try
                     {
-                        await UpdateStatus("Starting JobSyncService");
                         await WaitUntilNextRunTime();
                         await UpdateStatus("Starting CSV downloader...");
                         var filePath = await _downloader.RunCsvDownloader();
@@ -61,14 +62,14 @@ namespace UABackoneBot.Services
                         else
                         {
                             await PostJobsAsync(newJobs);
-                            await UpdateStatus($"[JobSyncService] Posted {newJobs.Count} new jobs");
+                            await UpdateStatus($"Posted {newJobs.Count} new jobs");
                         }
 
                             _previousJobs = _currentJobs;
                     }
                     catch (Exception ex)
                     {
-                        await UpdateStatus($"[JobSyncService ERROR] {ex}");
+                        await UpdateStatus($"{ex}");
                     }
 
                     await Task.Delay(10000); // temporary 10 sec delay so it doesn't spam
@@ -119,41 +120,49 @@ namespace UABackoneBot.Services
         }
         private async Task WaitUntilNextRunTime()
         {
-            var now = DateTime.Now;
+            var nowUtc = DateTime.UtcNow;
+            var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, _targetTimeZone);
 
             if (!_hasRunOnce)
             {
                 _hasRunOnce = true;
 
-                Console.WriteLine("[JobSyncService] First run: starting immediately.");
-                return; 
+                await UpdateStatus("First run: starting immediately.");
+                return;
             }
 
-            var todayRunTimes = _runTimes
-                .Select(t => DateTime.Today + t)
-                .Where(t => t > now)
+            var todayLocal = nowLocal.Date;
+
+            var todayRunTimesLocal = _runTimes
+                .Select(t => todayLocal + t)
+                .Where(t => t > nowLocal)
                 .OrderBy(t => t)
                 .ToList();
 
-            DateTime nextRunTime;
+            DateTime nextRunLocal;
 
-            if (todayRunTimes.Any())
+            if (todayRunTimesLocal.Any())
             {
-                nextRunTime = todayRunTimes.First();
+                nextRunLocal = todayRunTimesLocal.First();
             }
             else
             {
-                nextRunTime = DateTime.Today.AddDays(1) + _runTimes[0];
+                // all runs for today have passed – schedule first run tomorrow
+                nextRunLocal = todayLocal.AddDays(1) + _runTimes[0];
             }
 
-            var delay = nextRunTime - now;
+            // convert back to UTC for delay calculation
+            var nextRunUtc = TimeZoneInfo.ConvertTimeToUtc(nextRunLocal, _targetTimeZone);
+
+            var delay = nextRunUtc - nowUtc;
             if (delay < TimeSpan.Zero)
                 delay = TimeSpan.Zero;
 
-            Console.WriteLine($"[JobSyncService] Next run at {nextRunTime} (in {delay}).");
+            await UpdateStatus($"Next run at {nextRunLocal} local (UTC {nextRunUtc}) (in {delay}).");
 
             await Task.Delay(delay);
         }
+
 
         public async Task UpdateStatus(string msg)
         {
