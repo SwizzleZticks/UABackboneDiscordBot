@@ -39,31 +39,31 @@ namespace UABackoneBot.Services
         {
             _ = Task.Run(async () =>
             {
-                await UpdateStatus("Starting JobSyncService");
-                while (true)
+            await UpdateStatus("Starting JobSyncService");
+            while (true)
+            {
+                try
                 {
-                    try
+                    await WaitUntilNextRunTime();
+                    await UpdateStatus("Starting CSV downloader...");
+                    var filePath = await _downloader.RunCsvDownloader();
+                    await UpdateStatus("Download complete, beginning conversion...");
+                    _currentJobs = _converter.GetJobs(filePath);
+
+                    var newJobs = _currentJobs
+                        .Where(c => !_previousJobs.Any(p => p.JobKey == c.JobKey))
+                        .ToList();
+
+
+                    if (newJobs.Count == 0)
                     {
-                        await WaitUntilNextRunTime();
-                        await UpdateStatus("Starting CSV downloader...");
-                        var filePath = await _downloader.RunCsvDownloader();
-                        await UpdateStatus("Download complete, beginning conversion...");
-                        _currentJobs = _converter.GetJobs(filePath);
-
-                        var newJobs = _currentJobs
-                            .Where(c => !_previousJobs.Any(p => p.JobKey == c.JobKey))
-                            .ToList();
-
-
-                        if (newJobs.Count == 0)
-                        {
-                            await UpdateStatus("[JobSyncService] No new jobs found. Skipping post.");
-                        }
-                        else
-                        {
-                            await PostJobsAsync(newJobs);
+                        await UpdateStatus("[JobSyncService] No new jobs found. Skipping post.");
+                    }
+                    else
+                    {
+                            await PostJobsAsync(_currentJobs);
                             await UpdateStatus($"Posted {newJobs.Count} new jobs");
-                        }
+                    }
 
                             _previousJobs = _currentJobs;
                     }

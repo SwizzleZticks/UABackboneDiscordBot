@@ -25,6 +25,6 @@ namespace UABackoneBot.Models
         [Name("# Needed")]
         public int? AmountNeeded { get; set; }
         public string JobKey =>
-        $"{Location}|{Trade}|{Wages}|{Hours}|{StartDate}|{EndDate}|{AmountNeeded}"; //used for comparison since no id is provided in csv
+        $"{Location}|{Trade}|{Wages}|{Hours}|{StartDate}|{EndDate}"; //used for comparison since no id is provided in csv
     }
 }
