@@ -57,7 +57,7 @@ namespace UABackoneBot.Services
 
                     if (newJobs.Count == 0)
                     {
-                        await UpdateStatus("[JobSyncService] No new jobs found. Skipping post.");
+                        await UpdateStatus("No new jobs found. Skipping post.");
                     }
                     else
                     {
@@ -115,8 +115,8 @@ namespace UABackoneBot.Services
                 }
 
                 await channel.SendMessageAsync(embed: embed.Build());
-                await channel.SendMessageAsync($"**Date Posted: {DateTime.Now.ToShortDateString()}**\n**Update times are 9:30 AM, 12 PM, 6:30 PM**");
             }
+            await channel.SendMessageAsync($"**Date Posted: {DateTime.Now.ToShortDateString()}**\n**Update times are 9:30 AM, 12 PM, 6:30 PM**");
         }
         private async Task WaitUntilNextRunTime()
         {
