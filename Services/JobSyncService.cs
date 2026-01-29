@@ -115,8 +115,7 @@ namespace UABackoneBot.Services
                     }
                     else
                     {
-                        // FIX: post only the NEW jobs (not the entire current list)
-                        await PostJobsAsync(newJobs, token);
+                        await PostJobsAsync(_currentJobs, token);
                         await UpdateStatus($"Posted {newJobs.Count} new jobs");
                     }
 
@@ -131,7 +130,6 @@ namespace UABackoneBot.Services
                     await UpdateStatus($"{ex}");
                 }
 
-                // Optional: keep during testing; make cancellable so it doesn't hang stop.
                 await Task.Delay(10_000, token);
             }
 
