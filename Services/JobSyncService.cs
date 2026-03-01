@@ -195,8 +195,11 @@ namespace UABackoneBot.Services
             var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _targetTimeZone);
 
             await channel.SendMessageAsync(
+                "@everyone\n" +
                 $"**Date Posted: {nowLocal:MM/dd/yyyy}**\n" +
-                $"**Update times are 9:00 AM, 12:00 PM, 6:30 PM (ET)**");
+                "**Update times are 9:00 AM, 12:00 PM, 6:30 PM (ET)**",
+                allowedMentions: new AllowedMentions { AllowedTypes = AllowedMentionTypes.Everyone }
+            );
         }
 
         private async Task WaitUntilNextRunTime(CancellationToken token)
